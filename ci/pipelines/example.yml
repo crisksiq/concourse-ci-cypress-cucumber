@@ -1,0 +1,31 @@
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: https://github.com/crisksiq/concourse-ci-cypress-cucumber.git
+
+jobs:
+- name: e2e-automation-testing
+  plan:
+  - get: source-code
+    task: load-tests
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: cypress/browsers
+          tags: node18.6.0-chrome105-ff104
+        inputs:
+        - name: source-code
+        run:
+          path: sh
+          args:
+          - -cx
+          - |
+            node --version
+            cat source-code/e2e-tests/package.json
+            cd e2e-tests
+            ls -a
+            pwd
+            echo "it's looking good"
