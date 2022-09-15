@@ -1,5 +1,5 @@
 resources:
-- name: source-code
+- name: repo
   type: git
   source:
     uri: https://github.com/crisksiq/concourse-ci-cypress-cucumber.git
@@ -7,8 +7,9 @@ resources:
 jobs:
 - name: e2e-automation-testing
   plan:
-  - get: source-code
-    task: load-tests
+  - get: repo
+    trigger: false   # tell Concourse to trigger this job when new versions are emitted
+  - task: load-tests
     config:
       platform: linux
       image_resource:
@@ -16,16 +17,13 @@ jobs:
         source:
           repository: cypress/browsers
           tags: node18.6.0-chrome105-ff104
-        inputs:
-        - name: source-code
-        run:
-          path: sh
-          args:
-          - -cx
-          - |
-            node --version
-            cat source-code/e2e-tests/package.json
-            cd e2e-tests
-            ls -a
-            pwd
-            echo "it's looking good"
+      inputs: # add the get step as an input to this task
+      - name: repo
+      run:
+        path: sh
+        args:
+        - -cx
+        - |
+          cd repo/e2e-test
+          npm install
+          npm run headless
